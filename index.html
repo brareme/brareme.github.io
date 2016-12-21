@@ -387,11 +387,18 @@
       return Array.prototype.slice.call( htmlCollection );
     }
 
+    function extractImgTitle(aImg){
+      return aImg.children[0].getAttribute("alt");
+    }
+
     function handleFirstImage(aImg){
-      var imageTitle = aImg.children[0].getAttribute("alt");
+      var imageTitle = extractImgTitle(aImg);
       var span = document.createElement("span");
       span.innerText = imageTitle;
       aImg.appendChild(span);
+      var parent= aImg.parentElement;
+      parent.appendChild(aImg.cloneNode(true));
+      handleImage(aImg);
     }
 
     function handleImage(aImg){
@@ -400,8 +407,38 @@
       var controlDiv = document.createElement("div");
       var prevLink = document.createElement("a");
       var nextLink = document.createElement("a");
-      var closeButton = document.createElement("a");
+      var closeLink = document.createElement("a");
+      var header = document.createElement("h3");
+
+      prevLink.setAttribute("href","#");
+      prevLink.className= "lb-prev";
+      prevLink.innerText= "Prev";
+
+      nextLink.setAttribute("href","#");
+      nextLink.className= "lb-next";
+      nextLink.innerText= "Next";
+
+      header.innerText= extractImgTitle(aImg);
+
+      controlDiv.appendChild(header);
+      controlDiv.appendChild(prevLink);
+      controlDiv.appendChild(nextLink);
+
+      closeLink.setAttribute("href", "#page");
+      closeLink.className= "lb-close";
+      closeLink.innerText= "Close";
+
+      overlayDiv.appendChild(aImg.children[0].cloneNode(true));
+      overlayDiv.appendChild(controlDiv);
+      overlayDiv.appendChild(closeLink);
+      overlayDiv.className= "lb-overlay";
+      overlayDiv.setAttribute("id", "img-");
+
+      var parent= aImg.parentElement;
+      parent.appendChild(overlayDiv);
+      parent.removeChild(aImg);
     }
+
     //
     //        <div class="lb-overlay" id="image-9">
 		// 					<img src="images/full/9.jpg" alt="image09" />
@@ -421,6 +458,9 @@
         var images = collectionToArray(imageSet.getElementsByTagName("a"));
         var firstImage = images[0];
         handleFirstImage(firstImage);
+        images.slice(1).forEach(function(image){
+          handleImage(image);
+        });
       });
     });
 
